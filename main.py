@@ -4,7 +4,6 @@ from electrics_functions import *
 import matplotlib.pyplot as plt
 import pickle
 
-
 def predef(sizeA):
     EY = {
         'JscDirect': np.zeros((8760, sizeA[0])),
@@ -45,7 +44,7 @@ np.random.seed(2)  # Second subkey
 A2 = np.random.rand(90, len(lambda_))
 
 # Stack the arrays into a single list
-A = [A1, A2]
+A = np.array([A1, A2])
 
 CodeLocation = '722020TYA'  # Code to be looked up from \Irradiance\Dataset_TMY3\User Manual TMY3.pdf
 AliasLocation = 'Miami'  # To be specified
@@ -89,7 +88,7 @@ electrics = {
     'j0': [2.7e-18, 1e-12],
     'n': [1.1, 1],
     'Temp': [25, 25],
-    'NOCT': [48, 48],
+    'NOCT': np.array([48, 48]),
     'tcJsc': [0.0002, 0.00032],
     'tcVoc': [-0.002, -0.0041]
 }
@@ -106,16 +105,7 @@ IdirN = trim_irradiance(lambda_, IrradianceDirN, lambda_values)
 
 TempAmbient = irradiance['Data_TMY3']['Data_TMY3'][:, 13]
 
-# Calculation of the module temperature based on the NOCT
-if isinstance(electrics['NOCT'], np.ndarray):
-    electrics['Temp'] = np.zeros((8760, A.shape[1]))
-    if len(electrics['NOCT']) != A.shape[1]:
-        electrics['NOCT'] = electrics['NOCT'][0] * np.ones(A.shape[1])
-    for k in range(A.shape[1]):
-        electrics['Temp'][:, k] = TempAmbient + (electrics['NOCT'][k] - 20) / 800 * S
 
-EY['TempAmbient'] = TempAmbient
-EY['TempModule'] = electrics['Temp']
 
 # Save to a file
 with open('irradiance_data.pkl', 'wb') as file:
@@ -163,6 +153,18 @@ for j in range(8760):
             EY['JscDiffuse'][j, k] = dphi * dtheta * dlambda * diffuse
 
         EY['Jsc'][j, :] = EY['JscDirect'][j, :] + EY['JscDiffuse'][j, :]
+
+        
+# Calculation of the module temperature based on the NOCT
+if isinstance(electrics['NOCT'], np.ndarray):
+    electrics['Temp'] = np.zeros((8760, A.shape[1]))
+    if len(electrics['NOCT']) != A.shape[1]:
+        electrics['NOCT'] = electrics['NOCT'][0] * np.ones(A.shape[1])
+    for k in range(A.shape[1]):
+        electrics['Temp'][:, k] = TempAmbient + (electrics['NOCT'][k] - 20) / 800 * S
+
+EY['TempAmbient'] = TempAmbient
+EY['TempModule'] = electrics['Temp']
         
         
 for j in range(8760):
@@ -269,6 +271,11 @@ plt.plot(EY['VMPP'])
 plt.ylabel('VMPP (V)')
 plt.show()
 
+plt.figure()
+plt.plot(EY['TempModule'][:,1])
+plt.plot(EY['TempAmbient'])
+plt.ylabel('Temperature (°C)')
+plt.show()
 
 
 
