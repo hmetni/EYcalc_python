@@ -44,7 +44,7 @@ np.random.seed(2)  # Second subkey
 A2 = np.random.rand(90, len(lambda_))
 
 # Stack the arrays into a single list
-A = np.array([A1, A2])
+A = [A1, A2]
 
 CodeLocation = '722020TYA'  # Code to be looked up from \Irradiance\Dataset_TMY3\User Manual TMY3.pdf
 AliasLocation = 'Miami'  # To be specified
@@ -154,17 +154,19 @@ for j in range(8760):
 
         EY['Jsc'][j, :] = EY['JscDirect'][j, :] + EY['JscDiffuse'][j, :]
 
-        
+A_array = np.array(A)        
 # Calculation of the module temperature based on the NOCT
 if isinstance(electrics['NOCT'], np.ndarray):
-    electrics['Temp'] = np.zeros((8760, A.shape[1]))
-    if len(electrics['NOCT']) != A.shape[1]:
-        electrics['NOCT'] = electrics['NOCT'][0] * np.ones(A.shape[1])
-    for k in range(A.shape[1]):
+    electrics['Temp'] = np.zeros((8760, A_array.shape[1]))
+    if len(electrics['NOCT']) != A_array.shape[1]:
+        electrics['NOCT'] = electrics['NOCT'][0] * np.ones(A_array.shape[1])
+    for k in range(A_array.shape[1]):
         electrics['Temp'][:, k] = TempAmbient + (electrics['NOCT'][k] - 20) / 800 * S
 
 EY['TempAmbient'] = TempAmbient
 EY['TempModule'] = electrics['Temp']
+
+electrics['Temp']=[25, 25]
         
         
 for j in range(8760):
